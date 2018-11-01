@@ -21,16 +21,16 @@ public class DynamicReportMap implements Serializable, Comparable<DynamicReportM
     private boolean itPermissionChange;
     private String parentFolderLink;
 
-    public DynamicReportMap(String date, String foldername, String parentFolderId, String target_name, String name, String eventAction, String history, String fileid,String parentFolderLink) {
+    public DynamicReportMap(String date, String foldername, String parentFolderId, String target_name, String name, String eventAction, String history, String fileid, String parentFolderLink) {
         this.date = date;
         this.foldername = foldername;
-        this.parentFolderId=parentFolderId;
+        this.parentFolderId = parentFolderId;
         this.name = name;
         this.target_name = target_name;
         this.eventAction = eventAction;
         this.history = history;
         this.fileid = fileid;
-        this.parentFolderLink=parentFolderLink;
+        this.parentFolderLink = parentFolderLink;
     }
 
     @Override

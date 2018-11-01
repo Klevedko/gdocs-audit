@@ -14,7 +14,7 @@ public class StaticReportMap implements Serializable, Comparable<StaticReportMap
     private String badOwnersList;
     private boolean idInovus;
 
-    public StaticReportMap(String id, String folderName, String name, String webViewLink , String parentFolderId) {
+    public StaticReportMap(String id, String folderName, String name, String webViewLink, String parentFolderId) {
         this.id = id;
         this.folderName = folderName;
         this.name = name;
@@ -117,6 +117,7 @@ public class StaticReportMap implements Serializable, Comparable<StaticReportMap
                 ) return false;
         return true;
     }
+
     @Override
     //this is required to print the user friendly information about the maps.DynamicReportMap
     public String toString() {

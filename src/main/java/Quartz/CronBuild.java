@@ -8,8 +8,8 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
 public class CronBuild {
-    public static String startFolderId = "folderId";
-    public static String driveOutputFolderID = "folderId";
+    public static String startFolderId = "GdriveFolderId";
+    public static String driveOutputFolderID = "GdriveFolderId";
     public static Multimap<String, String> email_exceptions = HashMultimap.create();
     public static Multimap<String, String> folder_exceptions = HashMultimap.create();
 
@@ -30,14 +30,14 @@ public class CronBuild {
         Trigger trigger1 = TriggerBuilder
                 .newTrigger()
                 .withIdentity("Static", "group1")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 00 20 ? * SAT "))
-                //.withSchedule(CronScheduleBuilder.cronSchedule("* * 15 ? * * "))
+                //.withSchedule(CronScheduleBuilder.cronSchedule("0 00 20 ? * SAT "))
+                .withSchedule(CronScheduleBuilder.cronSchedule("00,20,40 * *  ? * * "))
                 .build();
         Trigger trigger2 = TriggerBuilder
                 .newTrigger()
                 .withIdentity("Dynamic", "group1")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 00 20 ? * SUN "))
-                //.withSchedule(CronScheduleBuilder.cronSchedule("* * 10 ? * * "))
+                //.withSchedule(CronScheduleBuilder.cronSchedule("0 00 20 ? * SUN "))
+                .withSchedule(CronScheduleBuilder.cronSchedule("10,30,50 * * ? * * "))
                 .build();
 
         Scheduler scheduler = new StdSchedulerFactory().getScheduler();

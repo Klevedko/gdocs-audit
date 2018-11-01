@@ -25,59 +25,42 @@ import static Quartz.CronBuild.startFolderId;
 
 public class StaticReport implements Job {
 
-    public static ArrayList<StaticReportMap> staticReportMap = new ArrayList<StaticReportMap>();
-    public static String resultfiletemplate = "Static_audit_result_";
-    public static String resultfile = "";
-    public static FileOutputStream fileout;
-    public static String querry_deeper = "";
+    public static ArrayList<StaticReportMap> staticReportMap = new ArrayList<>();
+    private String resultfiletemplate = "Static_audit_result_";
+    private String resultfile = "";
+    private FileOutputStream fileout;
+    private String querry_deeper = "";
     public static Drive driveservice;
-    public static ExecutorService executor = Executors.newFixedThreadPool(6);
-    public static List<Future<?>> futures = new ArrayList<>();
-    public static Boolean running = false;
-    public static StaticReportMap candy;
-
-    static {
-        try {
-            driveservice = Apiv3.Drive();
-        } catch (Exception e) {
-        }
-    }
+    private ExecutorService executor = Executors.newFixedThreadPool(6);
+    private List<Future<?>> futures = new ArrayList<>();
+    private StaticReportMap candy;
 
     public void execute(JobExecutionContext context) {
-        // блок для CRON - не запускаем, пока не выполнился предыдущий шаг
-        if (running) {
-            return;
-        }
-        // запустили
-        running = true;
         try {
+            driveservice = Apiv3.Drive();
             String query = "'" + startFolderId + "'  in parents and trashed=false";
             System.out.println("------------------------ STATIC RUN ------------------------ ");
             System.out.println("start " + new Date());
             FileList fileList = get_driveservice_v3_files(query);
             List<File> listFile = fileList.getFiles();
             deeper_in_folders("PROJECTS", "root", listFile);
-            Collections.sort(staticReportMap);
-            System.out.println(staticReportMap.size());
             for (Future<?> feature : futures) {
                 while (!feature.isDone())
                     TimeUnit.SECONDS.sleep(1);
                 feature.get();
             }
-            Thread.sleep(1000);
-            System.out.println("All threads are done");
+            Collections.sort(staticReportMap);
+            Thread.sleep(400);
             write_to_file(staticReportMap);
             CreateGoogleFile.main(resultfile);
             System.out.println("end " + new Date());
             staticReportMap.clear();
         } catch (Exception exec) {
             System.out.println(exec);
-        } finally {
-            //executor.shutdown();
         }
     }
 
-    public static FileList get_driveservice_v3_files(String query) {
+    public FileList get_driveservice_v3_files(String query) {
         try {
             return driveservice.files().list().setQ(query).setFields("nextPageToken, " +
                     "files(id, parents, name, webViewLink, mimeType)").execute();
@@ -87,7 +70,7 @@ public class StaticReport implements Job {
         }
     }
 
-    public static void deeper_in_folders(String folderName, String parentFolderID, List<File> file) {
+    public void deeper_in_folders(String folderName, String parentFolderID, List<File> file) {
         for (File f : file) {
             try {
                 if (!folder_exceptions.containsValue(f.getId())) {
@@ -109,7 +92,7 @@ public class StaticReport implements Job {
         }
     }
 
-    public static void write_to_file(ArrayList<StaticReportMap> staticReportMap) {
+    public void write_to_file(ArrayList<StaticReportMap> staticReportMap) {
         try {
             String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
             resultfile = resultfiletemplate.concat(audit_date.concat(".xlsx"));
@@ -192,7 +175,7 @@ public class StaticReport implements Job {
         }
     }
 
-    public static void create_columns(Sheet x) {
+    public void create_columns(Sheet x) {
         try {
             int row = 0;
             Cell cell;

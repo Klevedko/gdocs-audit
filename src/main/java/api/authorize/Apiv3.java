@@ -17,21 +17,9 @@ import java.util.List;
 public class Apiv3 {
     private static final String APPLICATION_NAME = "Google Drive API Java Quickstart";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = System.getProperty("user.dir") + "/tokens/token_v3";
 
-    /**
-     * Global instance of the scopes required by this quickstart.
-     * If modifying these scopes, delete your previously saved credentials/ folder.
-     */
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_METADATA_READONLY);
 
-    /**
-     * Creates an authorized Credential object.
-     *
-     * @param HTTP_TRANSPORT The network HTTP Transport.
-     * @return An authorized Credential object.
-     * @throws IOException If the credentials.json file cannot be found.
-     */
     private static Credential getCredential() {
         try {
             return GoogleCredential.fromStream(Thread.currentThread().getContextClassLoader().getResourceAsStream("serviceAccount.json"))
@@ -43,7 +31,6 @@ public class Apiv3 {
 
     public static Drive Drive() throws IOException, GeneralSecurityException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-
         Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredential())
                 .setApplicationName(APPLICATION_NAME)
                 .build();

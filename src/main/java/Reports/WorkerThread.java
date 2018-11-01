@@ -10,19 +10,19 @@ import static Reports.StaticReport.*;
 
 class WorkerThread implements Runnable {
     private StaticReportMap elemet;
-    private boolean fail=false;
-    private String ownersList = "";
+    private boolean fail = false;
+    String ownersList = "";
     private String goodOwnersList = "";
     private String badOwnersList = "";
     private Boolean allEmailFromINovus = true;
     private String realOwner = "";
+
     public WorkerThread(StaticReportMap income_element) {
         this.elemet = income_element;
     }
 
     public void run() {
         {
-            System.out.println("starting new thread WITH NAME= " + elemet.getName());
             try {
                 PermissionList permissionList = driveservice.permissions().list(elemet.getId()).setFields("permissions(displayName, emailAddress, role)")
                         .execute();
@@ -59,11 +59,10 @@ class WorkerThread implements Runnable {
                 fail = true;
                 staticReportMap.remove(this.elemet);
             } finally {
-                if(this.fail) {
+                if (this.fail) {
                     staticReportMap.remove(this.elemet);
                 }
             }
-            System.out.println("DONE thread WITH NAME= " + elemet.getName());
         }
     }
 }

@@ -32,37 +32,24 @@ import static Quartz.CronBuild.folder_exceptions;
 import static Quartz.CronBuild.startFolderId;
 
 public class DynamicReport implements Job {
-    public static String querry_deeper = "";
-    public static String history = "";
-    public static String historyAdd = "";
-    public static String historyDel = "";
-    public static String historyRem = "";
-    public static JSONArray geodata;
-    public static String resultfiletemplate = "Dynamic_audit_result_";
-    public static String resultfile = "";
-    public static ArrayList<DynamicReportMap> resultMap = new ArrayList<DynamicReportMap>();
-    public static String evlist_string = "";
-    public static Drive driveservice;
-    public static Appsactivity service;
-    public static long oldMS;
-    public static Boolean running = false;
+    private String querry_deeper = "";
+    private String history = "";
+    private String historyAdd = "";
+    private String historyDel = "";
+    private String historyRem = "";
+    private JSONArray geodata;
+    private String resultfiletemplate = "Dynamic_audit_result_";
+    private String resultfile = "";
+    private ArrayList<DynamicReportMap> resultMap = new ArrayList<>();
+    private String evlist_string = "";
+    private Drive driveservice;
+    private Appsactivity service;
+    private long oldMS;
 
-    static {
+    public void execute(JobExecutionContext context) {
         try {
             service = Apiv1.getAppsactivityService();
             driveservice = Apiv3.Drive();
-        } catch (Exception e) {
-        }
-    }
-
-    public void execute(JobExecutionContext context) {
-        // блок для CRON - не запускаем, пока не выполнился предыдущий шаг
-        if (running) {
-            return;
-        }
-        // запустили
-        running = true;
-        try {
             oldMS = periodForActivity();
             System.out.println("------------------------ DYNAMIC RUN ------------------------ ");
             System.out.println("start " + new Date());
@@ -80,7 +67,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static void activityForFile(String fileid, String link, String foldername, String parentFolderId, String parentFolderLink) {
+    public void activityForFile(String fileid, String link, String foldername, String parentFolderId, String parentFolderLink) {
         ListActivitiesResponse result = get_driveservice_v1_activities(fileid);
         List<Activity> activities = result.getActivities();
         if (activities == null || activities.size() == 0) {
@@ -90,7 +77,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static FileList get_driveservice_v3_files(String query) {
+    public FileList get_driveservice_v3_files(String query) {
         try {
             return driveservice.files().list().setQ(query).setFields("nextPageToken, " +
                     "files(id, parents, name, webViewLink, mimeType)").execute();
@@ -100,7 +87,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static void deeper_in_folders(String FolderName, String parentFolderId, List<File> file, String parentFolderLink) {
+    public void deeper_in_folders(String FolderName, String parentFolderId, List<File> file, String parentFolderLink) {
         for (File f : file) {
             try {
                 if (!folder_exceptions.containsValue(f.getId())) {
@@ -117,7 +104,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static ListActivitiesResponse get_driveservice_v1_activities(String query) {
+    public ListActivitiesResponse get_driveservice_v1_activities(String query) {
         try {
             return service.activities().list().setSource("drive.google.com").setDriveAncestorId(query).execute();
         } catch (Exception x) {
@@ -125,7 +112,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static void read_activities(List<Activity> activities, String link, String foldername, String parentFolderId, String parentFolderLink) {
+    public void read_activities(List<Activity> activities, String link, String foldername, String parentFolderId, String parentFolderLink) {
         try {
             for (Activity activity : activities) {
                 // Get Event for every Activity
@@ -164,7 +151,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static void addedDeletedRemovedPermissions(String evlist_string) {
+    public void addedDeletedRemovedPermissions(String evlist_string) {
         JSONObject obj = new JSONObject(evlist_string);
         try {
             geodata = obj.getJSONArray("addedPermissions");
@@ -184,7 +171,7 @@ public class DynamicReport implements Job {
         history = historyAdd.concat(historyDel.concat(historyRem));
     }
 
-    public static void read_editors(DynamicReportMap elemet) {
+    public void read_editors(DynamicReportMap elemet) {
         String ownersList = "";
         String goodOwnersList = "";
         String badOwnersList = "";
@@ -201,15 +188,12 @@ public class DynamicReport implements Job {
                         if (!email_exceptions.containsValue(pe.getEmailAddress())) {
                             badOwnersList += pe.getEmailAddress().toString() + "\n";
                             allEmailFromINovus = false;
-                        }
-                        // add @amiable-crane-213912  to goodOwnersList
-                        else goodOwnersList += pe.getEmailAddress().toString() + "\n";
-                    }
-                    // add i-novus to goodOwnersList
-                    else {
+                        } else goodOwnersList += pe.getEmailAddress().toString() + "\n";
+                    } else {
                         goodOwnersList += pe.getEmailAddress().toString() + "\n";
                     }
                     if ((pe.getRole().equals("owner"))) {
+                        // forget it
                         realOwner = pe.getDisplayName() + " ( " + pe.getEmailAddress() + " )";
                     }
                 }
@@ -229,7 +213,8 @@ public class DynamicReport implements Job {
         String his = "";
         for (int i = 0; i < geodata.length(); ++i) {
             JSONObject person = geodata.getJSONObject(i);
-            his += "   " + (person.has("name") ? person.getString("name") : person.getString("permissionId")) + ": " + person.getString("role") +"\n";
+            his += "   " + (person.has("name") ? person.getString("name")
+                    : person.getString("permissionId")) + ": " + person.getString("role") + "\n";
         }
         return his;
     }
@@ -238,11 +223,10 @@ public class DynamicReport implements Job {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_WEEK, -7);
-        long x = cal.getTimeInMillis();
-        return x;
+        return cal.getTimeInMillis();
     }
 
-    public static void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
+    public void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
         try {
             System.out.println("writing to the dynamic file .......");
             String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
@@ -257,28 +241,23 @@ public class DynamicReport implements Job {
             Sheet list1 = wb.createSheet("Общий список действий");
             Sheet list2 = wb.createSheet("Изменения прав");
             Sheet list3 = wb.createSheet("Действия над файлами");
-            System.out.println("create_columns1");
+            System.out.println("create_columns1-3");
             create_columns(list1);
-            System.out.println("create_columns2");
             create_columns(list2);
-            System.out.println("create_columns3");
             create_columns(list3);
             System.out.println("write!");
             int row1 = 1;
             int row2 = 1;
             int row3 = 1;
             for (DynamicReportMap product : resultMap) {
-                //  Write all actions on list 1
-                write(wb, cs, list1, row1, product);
+                write( wb,cs, list1, row1, product);
                 row1++;
-                //  Write PermissionChanges on list2
                 if (product.isItPermissionChange()) {
-                    write(wb, cs, list2, row2, product);
+                    write(wb,cs, list2, row2, product);
                     row2++;
                 }
-                //  Write others actions on list3
                 if (!product.isItPermissionChange()) {
-                    write(wb, cs, list3, row3, product);
+                    write(wb,cs, list3, row3, product);
                     row3++;
                 }
             }
@@ -290,11 +269,11 @@ public class DynamicReport implements Job {
         }
     }
 
-    public static void write(XSSFWorkbook wb, CellStyle cs, Sheet x, Integer y, DynamicReportMap product) {
+    public static void write(Workbook wb, CellStyle cs, Sheet x, Integer y, DynamicReportMap product) {
         Row dataRow;
         Cell cell;
         dataRow = x.createRow(y);
-        dataRow.setHeight((short)811);
+        dataRow.setHeight((short) 811);
         cell = dataRow.createCell(0);
         cell.setCellStyle(cs);
         cell.setCellValue(product.getDate());
@@ -302,14 +281,11 @@ public class DynamicReport implements Job {
         cell = dataRow.createCell(1);
         cell.setCellStyle(cs);
         cell.setCellValue(product.getFoldername());
+        Hyperlink link = wb.getCreationHelper().createHyperlink(Hyperlink.LINK_FILE);
 
         cell = dataRow.createCell(2);
         cell.setCellStyle(cs);
-        CreationHelper createHelper = wb.getCreationHelper();
-        Hyperlink link = createHelper.createHyperlink(Hyperlink.LINK_FILE);
-        CellStyle hlink_style = wb.createCellStyle();
         link.setAddress(product.getWebViewLink());
-        //cell.setCellStyle(hlink_style);
         cell.setCellValue(product.getTarget_name());
         cell.setCellStyle(cs);
         if (!product.getWebViewLink().equals(""))
@@ -337,7 +313,6 @@ public class DynamicReport implements Job {
         cell.setCellValue(product.getGoodOwnersList());
 
         cell = dataRow.createCell(8);
-        //cell.setCellStyle(cs)
         cell.setCellValue(product.getBadOwnersList());
     }
 

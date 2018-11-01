@@ -33,8 +33,6 @@ public class CreateGoogleFile {
         }
         return new File();
     }
-        // Create Google File from byte[]
-
         public static File createGoogleFile (String googleFolderIdParent, String contentType, //
                 String customFileName,byte[] uploadData) throws IOException {
             //
@@ -62,7 +60,6 @@ public class CreateGoogleFile {
 
         public static String main (String args) throws IOException {
             java.io.File uploadFile = new java.io.File(args);
-            // Create  File:
             File googleFile = createGoogleFile(driveOutputFolderID, "/", args, uploadFile);
             System.out.println("Created Google file!");
             System.out.println("WebContentLink: " + googleFile.getWebContentLink());

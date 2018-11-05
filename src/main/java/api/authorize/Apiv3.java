@@ -8,6 +8,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.FileList;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -28,7 +29,15 @@ public class Apiv3 {
             throw new RuntimeException("Cannot be authorized in Google account", e);
         }
     }
-
+    public static FileList get_driveservice_v3_files(Drive driveservice, String query) {
+        try {
+            return driveservice.files().list().setQ(query).setFields("nextPageToken, " +
+                    "files(id, parents, name, webViewLink, mimeType)").execute();
+            //, sharingUser(emailAddress, permissionId)
+        } catch (Exception x) {
+            throw new RuntimeException("Cannot get_driveservice_v3_files = ", x);
+        }
+    }
     public static Drive Drive() throws IOException, GeneralSecurityException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredential())

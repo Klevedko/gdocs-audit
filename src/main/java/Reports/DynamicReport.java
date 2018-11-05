@@ -5,17 +5,14 @@ import api.authorize.Apiv1;
 import api.authorize.Apiv3;
 import com.google.api.services.appsactivity.Appsactivity;
 import com.google.api.services.appsactivity.model.*;
+import com.google.api.services.appsactivity.model.User;
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
-import com.google.api.services.drive.model.PermissionList;
+import com.google.api.services.drive.model.*;
 import maps.DynamicReportMap;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.io.FileOutputStream;
 import java.text.ParseException;
@@ -27,47 +24,47 @@ import java.util.List;
 import java.util.Calendar;
 import java.util.stream.IntStream;
 
-import static Quartz.CronBuild.email_exceptions;
-import static Quartz.CronBuild.folder_exceptions;
-import static Quartz.CronBuild.startFolderId;
+import static Reports.App.email_exceptions;
+import static Reports.App.folder_exceptions;
+import static Reports.App.startFolderId;
+import static api.authorize.Apiv3.get_driveservice_v3_files;
 
-public class DynamicReport implements Job {
-    private String querry_deeper = "";
-    private String history = "";
-    private String historyAdd = "";
-    private String historyDel = "";
-    private String historyRem = "";
-    private JSONArray geodata;
-    private String resultfiletemplate = "Dynamic_audit_result_";
-    private String resultfile = "";
-    private ArrayList<DynamicReportMap> resultMap = new ArrayList<>();
-    private String evlist_string = "";
-    private Drive driveservice;
-    private Appsactivity service;
-    private long oldMS;
+public class DynamicReport {
+    public static String querry_deeper = "";
+    public static String history = "";
+    public static String historyAdd = "";
+    public static String historyDel = "";
+    public static String historyRem = "";
+    public static JSONArray geodata;
+    public static String resultfiletemplate = "Dynamic_audit_result_";
+    public static String resultfile = "";
+    public static ArrayList<DynamicReportMap> resultMap = new ArrayList<>();
+    public static String evlist_string = "";
+    public static Drive driveservice;
+    public static Appsactivity service;
+    public static long oldMS;
 
-    public void execute(JobExecutionContext context) {
+    public static void main(String[] args) {
         try {
+            driveservice=Apiv3.Drive();
             service = Apiv1.getAppsactivityService();
-            driveservice = Apiv3.Drive();
             oldMS = periodForActivity();
             System.out.println("------------------------ DYNAMIC RUN ------------------------ ");
             System.out.println("start " + new Date());
-            FileList fileList = get_driveservice_v3_files("'" + startFolderId + "'  in parents and trashed=false");
+            FileList fileList = get_driveservice_v3_files(driveservice,"'" + startFolderId + "'  in parents and trashed=false");
             List<File> listFile = fileList.getFiles();
             deeper_in_folders("PROJECT", "root", listFile, "project link");
             Collections.sort(resultMap);
             prepare_to_write(resultMap);
-            System.out.println("end " + new Date());
             CreateGoogleFile.main(resultfile);
-            System.out.println("ENDsize=" + resultMap.size());
             resultMap.clear();
+            System.out.println("end " + new Date());
         } catch (Exception exec) {
             System.out.println("execute =" + exec);
         }
     }
 
-    public void activityForFile(String fileid, String link, String foldername, String parentFolderId, String parentFolderLink) {
+    public static void activityForFile(String fileid, String link, String foldername, String parentFolderId, String parentFolderLink) {
         ListActivitiesResponse result = get_driveservice_v1_activities(fileid);
         List<Activity> activities = result.getActivities();
         if (activities == null || activities.size() == 0) {
@@ -77,24 +74,17 @@ public class DynamicReport implements Job {
         }
     }
 
-    public FileList get_driveservice_v3_files(String query) {
-        try {
-            return driveservice.files().list().setQ(query).setFields("nextPageToken, " +
-                    "files(id, parents, name, webViewLink, mimeType)").execute();
-            //, sharingUser(emailAddress, permissionId)
-        } catch (Exception x) {
-            throw new RuntimeException("Cannot get_driveservice_v3_files = ", x);
-        }
-    }
 
-    public void deeper_in_folders(String FolderName, String parentFolderId, List<File> file, String parentFolderLink) {
+
+    public static void deeper_in_folders(String FolderName, String parentFolderId, List<File> file, String parentFolderLink) {
         for (File f : file) {
             try {
                 if (!folder_exceptions.containsValue(f.getId())) {
                     if (f.getMimeType().equals("application/vnd.google-apps.folder") || f.getMimeType().equals("folder")) {
                         querry_deeper = "'" + f.getId() + "'  in parents and trashed=false";
-                        deeper_in_folders(FolderName.concat("/".concat(f.getName())), f.getId(), get_driveservice_v3_files(querry_deeper).getFiles(), f.getWebViewLink());
+                        deeper_in_folders(FolderName.concat("/".concat(f.getName())), f.getId(), get_driveservice_v3_files(driveservice,querry_deeper).getFiles(), f.getWebViewLink());
                     } else {
+                        System.out.println(f.getName());
                         activityForFile(f.getId(), f.getWebViewLink(), FolderName, parentFolderId, parentFolderLink);
                     }
                 }
@@ -104,7 +94,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public ListActivitiesResponse get_driveservice_v1_activities(String query) {
+    public static ListActivitiesResponse get_driveservice_v1_activities(String query) {
         try {
             return service.activities().list().setSource("drive.google.com").setDriveAncestorId(query).execute();
         } catch (Exception x) {
@@ -112,10 +102,9 @@ public class DynamicReport implements Job {
         }
     }
 
-    public void read_activities(List<Activity> activities, String link, String foldername, String parentFolderId, String parentFolderLink) {
+    public static void read_activities(List<Activity> activities, String link, String foldername, String parentFolderId, String parentFolderLink) {
         try {
             for (Activity activity : activities) {
-                // Get Event for every Activity
                 List<Event> eventList = activity.getSingleEvents();
                 for (Event e : eventList) {
                     if (e.getEventTimeMillis().longValue() >= oldMS) {
@@ -151,7 +140,7 @@ public class DynamicReport implements Job {
         }
     }
 
-    public void addedDeletedRemovedPermissions(String evlist_string) {
+    public static void addedDeletedRemovedPermissions(String evlist_string) {
         JSONObject obj = new JSONObject(evlist_string);
         try {
             geodata = obj.getJSONArray("addedPermissions");
@@ -171,7 +160,7 @@ public class DynamicReport implements Job {
         history = historyAdd.concat(historyDel.concat(historyRem));
     }
 
-    public void read_editors(DynamicReportMap elemet) {
+    public static void read_editors(DynamicReportMap elemet) {
         String ownersList = "";
         String goodOwnersList = "";
         String badOwnersList = "";
@@ -191,8 +180,7 @@ public class DynamicReport implements Job {
                         } else goodOwnersList += pe.getEmailAddress().toString() + "\n";
                     } else {
                         goodOwnersList += pe.getEmailAddress().toString() + "\n";
-                    }
-                    if ((pe.getRole().equals("owner"))) {
+                    }                    if ((pe.getRole().equals("owner"))) {
                         // forget it
                         realOwner = pe.getDisplayName() + " ( " + pe.getEmailAddress() + " )";
                     }
@@ -226,7 +214,7 @@ public class DynamicReport implements Job {
         return cal.getTimeInMillis();
     }
 
-    public void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
+    public static void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
         try {
             System.out.println("writing to the dynamic file .......");
             String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
@@ -250,14 +238,14 @@ public class DynamicReport implements Job {
             int row2 = 1;
             int row3 = 1;
             for (DynamicReportMap product : resultMap) {
-                write( wb,cs, list1, row1, product);
+                write(wb, cs, list1, row1, product);
                 row1++;
                 if (product.isItPermissionChange()) {
-                    write(wb,cs, list2, row2, product);
+                    write(wb, cs, list2, row2, product);
                     row2++;
                 }
                 if (!product.isItPermissionChange()) {
-                    write(wb,cs, list3, row3, product);
+                    write(wb, cs, list3, row3, product);
                     row3++;
                 }
             }

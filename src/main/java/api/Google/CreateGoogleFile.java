@@ -12,7 +12,7 @@ import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 
-import static Quartz.CronBuild.driveOutputFolderID;
+import static Reports.App.driveOutputFolderID;
 
 
 public class CreateGoogleFile {

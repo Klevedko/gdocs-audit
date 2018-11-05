@@ -1,17 +1,17 @@
 package Reports;
 
-import Quartz.CronBuild;
 import com.google.api.services.drive.model.PermissionList;
+import maps.StaticReportErrorMap;
 import maps.StaticReportMap;
 
 import java.util.List;
 
 import static Reports.StaticReport.*;
+import static Reports.App.email_exceptions;
 
 class WorkerThread implements Runnable {
     private StaticReportMap elemet;
-    private boolean fail = false;
-    String ownersList = "";
+    private String ownersList = "";
     private String goodOwnersList = "";
     private String badOwnersList = "";
     private Boolean allEmailFromINovus = true;
@@ -31,15 +31,11 @@ class WorkerThread implements Runnable {
                     if (pe.getEmailAddress() != null && pe.getEmailAddress() != "" && pe.getDisplayName() != null && pe.getDisplayName() != "") {
                         ownersList += pe.getDisplayName() + " ( " + pe.getEmailAddress() + " ) : " + pe.getRole() + "\n";
                         if (!(pe.getEmailAddress().toLowerCase().contains("@i-novus"))) {
-                            if (!CronBuild.email_exceptions.containsValue(pe.getEmailAddress())) {
+                            if (!email_exceptions.containsValue(pe.getEmailAddress())) {
                                 badOwnersList += pe.getEmailAddress().toString() + "\n";
                                 allEmailFromINovus = false;
-                            }
-                            // add @serviceaccount  to goodOwnersList
-                            else goodOwnersList += pe.getEmailAddress().toString() + "\n";
-                        }
-                        // add i-novus to goodOwnersList
-                        else {
+                            } else goodOwnersList += pe.getEmailAddress().toString() + "\n";
+                        } else {
                             goodOwnersList += pe.getEmailAddress().toString() + "\n";
                         }
                         if ((pe.getRole().equals("owner"))) {
@@ -52,16 +48,12 @@ class WorkerThread implements Runnable {
                 this.elemet.setGoodOwnersList(goodOwnersList);
                 this.elemet.setBadOwnersList(badOwnersList);
                 this.elemet.setIdInovus(allEmailFromINovus);
+                staticReportMap.add(elemet);
             } catch (Exception e) {
                 System.out.println("--------REST ERROR = " + e.getMessage());
-                // if there were no permission for account - we delete it from map
                 System.out.println(elemet.getId());
-                fail = true;
-                staticReportMap.remove(this.elemet);
-            } finally {
-                if (this.fail) {
-                    staticReportMap.remove(this.elemet);
-                }
+                System.out.println(elemet.getName());
+                staticReportErrorMap.add(new StaticReportErrorMap(elemet.getId(), elemet.getName(), elemet.getFolderName()));
             }
         }
     }

@@ -9,24 +9,21 @@ import com.google.api.services.appsactivity.model.User;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.*;
 import maps.DynamicReportMap;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.FileOutputStream;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Calendar;
-import java.util.stream.IntStream;
 
 import static Reports.App.email_exceptions;
 import static Reports.App.folder_exceptions;
 import static Reports.App.startFolderId;
+import static api.Writers.DynamicWriter.prepare_to_write;
+import static api.authorize.Apiv1.get_driveservice_v1_activities;
 import static api.authorize.Apiv3.get_driveservice_v3_files;
 
 public class DynamicReport {
@@ -46,12 +43,12 @@ public class DynamicReport {
 
     public static void main(String[] args) {
         try {
-            driveservice=Apiv3.Drive();
+            driveservice = Apiv3.Drive();
             service = Apiv1.getAppsactivityService();
             oldMS = periodForActivity();
             System.out.println("------------------------ DYNAMIC RUN ------------------------ ");
             System.out.println("start " + new Date());
-            FileList fileList = get_driveservice_v3_files(driveservice,"'" + startFolderId + "'  in parents and trashed=false");
+            FileList fileList = get_driveservice_v3_files(driveservice, "'" + startFolderId + "'  in parents and trashed=false");
             List<File> listFile = fileList.getFiles();
             deeper_in_folders("PROJECT", "root", listFile, "project link");
             Collections.sort(resultMap);
@@ -74,15 +71,13 @@ public class DynamicReport {
         }
     }
 
-
-
     public static void deeper_in_folders(String FolderName, String parentFolderId, List<File> file, String parentFolderLink) {
         for (File f : file) {
             try {
                 if (!folder_exceptions.containsValue(f.getId())) {
                     if (f.getMimeType().equals("application/vnd.google-apps.folder") || f.getMimeType().equals("folder")) {
                         querry_deeper = "'" + f.getId() + "'  in parents and trashed=false";
-                        deeper_in_folders(FolderName.concat("/".concat(f.getName())), f.getId(), get_driveservice_v3_files(driveservice,querry_deeper).getFiles(), f.getWebViewLink());
+                        deeper_in_folders(FolderName.concat("/".concat(f.getName())), f.getId(), get_driveservice_v3_files(driveservice, querry_deeper).getFiles(), f.getWebViewLink());
                     } else {
                         System.out.println(f.getName());
                         activityForFile(f.getId(), f.getWebViewLink(), FolderName, parentFolderId, parentFolderLink);
@@ -91,14 +86,6 @@ public class DynamicReport {
             } catch (Exception ss) {
                 System.out.println("deeper_in_folders = " + f.getName() + ss);
             }
-        }
-    }
-
-    public static ListActivitiesResponse get_driveservice_v1_activities(String query) {
-        try {
-            return service.activities().list().setSource("drive.google.com").setDriveAncestorId(query).execute();
-        } catch (Exception x) {
-            throw new RuntimeException("get_driveservice_v1_activities =", x);
         }
     }
 
@@ -113,7 +100,7 @@ public class DynamicReport {
                         String date = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(e.getEventTimeMillis().longValue()));
                         if (user == null || target == null)
                             continue;
-                        //System.out.printf(target.getId() + " %s: %s. FILE: %s,  ACTION: %s. GETPERMISSIONCHANGES_JSON %s\n", date, user.getName(), target.getName(), e.getPrimaryEventType(), e.getPermissionChanges());
+                        System.out.printf(target.getId() + " %s: %s. FILE: %s,  ACTION: %s. GETPERMISSIONCHANGES_JSON %s\n", date, user.getName(), target.getName(), e.getPrimaryEventType(), e.getPermissionChanges());
                         List<PermissionChange> evlist = e.getPermissionChanges();
                         evlist_string = "";
                         // If Activity has JSON != NULL
@@ -124,17 +111,16 @@ public class DynamicReport {
                             // Getting good String from JSON's parts
                             addedDeletedRemovedPermissions(evlist_string);
                         } else history = "";
-                        DynamicReportMap candy = new DynamicReportMap(date, foldername, target.getId(), target.getName(), user.getName(), e.getPrimaryEventType(), history, target.getId(), parentFolderLink);
+                        DynamicReportMap candy = new DynamicReportMap(date, foldername, target.getId(), target.getName(), link, user.getName(),
+                                e.getPrimaryEventType(), history, target.getId(), parentFolderLink);
                         // if it is not PermissionChange, we will show it in wb list2
                         candy.setItPermissionChange(e.getPrimaryEventType().equals("permissionChange") ? true : false);
                         resultMap.add(candy);
-                        candy.setWebViewLink(link);
                         read_editors(candy);
                     }
                 }
                 history = historyDel = historyAdd = historyRem = "";
             }
-
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -142,22 +128,16 @@ public class DynamicReport {
 
     public static void addedDeletedRemovedPermissions(String evlist_string) {
         JSONObject obj = new JSONObject(evlist_string);
-        try {
-            geodata = obj.getJSONArray("addedPermissions");
-            historyAdd = "addedPermissions:\n" + getHistory(geodata);
-        } catch (Exception e) {
+        String[] perms = new String[]{"addedPermissions", "deletedPermissions", "removedPermissions"};
+        for (String x : perms) {
+            try {
+                geodata = obj.getJSONArray(x);
+                historyAdd = x + ":\n" + getHistory(geodata);
+                history=historyAdd;
+            }catch (Exception t){
+                System.out.println("----->" + t.getMessage());
+            }
         }
-        try {
-            geodata = obj.getJSONArray("deletedPermissions");
-            historyDel = "deletedPermissions:\n" + getHistory(geodata);
-        } catch (Exception e) {
-        }
-        try {
-            geodata = obj.getJSONArray("removedPermissions");
-            historyRem = "removedPermissions:\n" + getHistory(geodata);
-        } catch (Exception e) {
-        }
-        history = historyAdd.concat(historyDel.concat(historyRem));
     }
 
     public static void read_editors(DynamicReportMap elemet) {
@@ -180,7 +160,8 @@ public class DynamicReport {
                         } else goodOwnersList += pe.getEmailAddress().toString() + "\n";
                     } else {
                         goodOwnersList += pe.getEmailAddress().toString() + "\n";
-                    }                    if ((pe.getRole().equals("owner"))) {
+                    }
+                    if ((pe.getRole().equals("owner"))) {
                         // forget it
                         realOwner = pe.getDisplayName() + " ( " + pe.getEmailAddress() + " )";
                     }
@@ -212,133 +193,5 @@ public class DynamicReport {
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_WEEK, -7);
         return cal.getTimeInMillis();
-    }
-
-    public static void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
-        try {
-            System.out.println("writing to the dynamic file .......");
-            String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
-            resultfile = resultfiletemplate.concat(audit_date.concat(".xlsx"));
-            XSSFWorkbook wb = new XSSFWorkbook();
-            String output = resultfile;
-            FileOutputStream fileout;
-            fileout = new FileOutputStream(output);
-            CellStyle cs = wb.createCellStyle();
-            cs.setWrapText(true);
-
-            Sheet list1 = wb.createSheet("Общий список действий");
-            Sheet list2 = wb.createSheet("Изменения прав");
-            Sheet list3 = wb.createSheet("Действия над файлами");
-            System.out.println("create_columns1-3");
-            create_columns(list1);
-            create_columns(list2);
-            create_columns(list3);
-            System.out.println("write!");
-            int row1 = 1;
-            int row2 = 1;
-            int row3 = 1;
-            for (DynamicReportMap product : resultMap) {
-                write(wb, cs, list1, row1, product);
-                row1++;
-                if (product.isItPermissionChange()) {
-                    write(wb, cs, list2, row2, product);
-                    row2++;
-                }
-                if (!product.isItPermissionChange()) {
-                    write(wb, cs, list3, row3, product);
-                    row3++;
-                }
-            }
-            wb.write(fileout);
-            fileout.close();
-        } catch (Exception e) {
-            System.out.println(e);
-            System.exit(0);
-        }
-    }
-
-    public static void write(Workbook wb, CellStyle cs, Sheet x, Integer y, DynamicReportMap product) {
-        Row dataRow;
-        Cell cell;
-        dataRow = x.createRow(y);
-        dataRow.setHeight((short) 811);
-        cell = dataRow.createCell(0);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getDate());
-
-        cell = dataRow.createCell(1);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getFoldername());
-        Hyperlink link = wb.getCreationHelper().createHyperlink(Hyperlink.LINK_FILE);
-
-        cell = dataRow.createCell(2);
-        cell.setCellStyle(cs);
-        link.setAddress(product.getWebViewLink());
-        cell.setCellValue(product.getTarget_name());
-        cell.setCellStyle(cs);
-        if (!product.getWebViewLink().equals(""))
-            cell.setHyperlink(link);
-
-        cell = dataRow.createCell(3);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getName());
-
-        cell = dataRow.createCell(4);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getEventAction());
-
-        cell = dataRow.createCell(5);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getHistory());
-
-        cell = dataRow.createCell(6);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getIdowners());
-
-        cell = dataRow.createCell(7);
-        cell.setCellStyle(cs);
-
-        cell.setCellValue(product.getGoodOwnersList());
-
-        cell = dataRow.createCell(8);
-        cell.setCellValue(product.getBadOwnersList());
-    }
-
-    public static void create_columns(Sheet x) {
-        try {
-            int row = 0;
-            Cell cell;
-            Row dataRow = x.createRow(row);
-            cell = dataRow.createCell(0);
-            cell.setCellValue("Дата");
-            cell = dataRow.createCell(1);
-            cell.setCellValue("Путь");
-            cell = dataRow.createCell(2);
-            cell.setCellValue("Файл");
-            cell = dataRow.createCell(3);
-            cell.setCellValue("Кто");
-            cell = dataRow.createCell(4);
-            cell.setCellValue("Действие");
-            cell = dataRow.createCell(5);
-            cell.setCellValue("Изменения");
-            cell = dataRow.createCell(6);
-            cell.setCellValue("Общий список прав");
-            cell = dataRow.createCell(7);
-            cell.setCellValue("Доступ сотрудников АН");
-            cell = dataRow.createCell(8);
-            cell.setCellValue("Доступ сторонних сотрудников");
-            IntStream.range(4, 9).forEach((columnIndex) -> x.setColumnWidth(columnIndex, 6400));
-            x.setColumnWidth(0, 2700);
-            x.setColumnWidth(1, 10000);
-            x.setColumnWidth(2, 10000);
-            x.setColumnWidth(3, 3800);
-            x.setColumnWidth(4, 4300);
-            x.setColumnWidth(5, 10000);
-            x.setColumnWidth(6, 14400);
-            x.setColumnWidth(7, 14400);
-            row++;
-        } catch (Exception create_columns) {
-            System.out.println("create_columns" + create_columns);
-        }
     }
 }

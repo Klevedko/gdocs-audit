@@ -20,9 +20,9 @@ public class App {
         System.out.println();
         switch (args[0]) {
             case "6":
-                StaticReport.main(new String[]{""});
+           StaticReport.main(new String[]{""});
             case "7":
-                DynamicReport.main(new String[]{""});
+            DynamicReport.main(new String[]{""});
             default:
                 System.exit(0);
         }

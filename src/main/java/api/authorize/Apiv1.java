@@ -9,9 +9,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.appsactivity.Appsactivity;
 import com.google.api.services.appsactivity.AppsactivityScopes;
+import com.google.api.services.appsactivity.model.ListActivitiesResponse;
 
 import java.io.*;
 import java.util.*;
+
+import static Reports.DynamicReport.service;
 
 public class Apiv1 {
     private static final String APPLICATION_NAME = "G Suite Activity API Java Quickstart";
@@ -38,7 +41,13 @@ public class Apiv1 {
             throw new RuntimeException("Cannot be authorized in Google account", e);
         }
     }
-
+    public static ListActivitiesResponse get_driveservice_v1_activities(String query) {
+        try {
+            return service.activities().list().setSource("drive.google.com").setDriveAncestorId(query).execute();
+        } catch (Exception x) {
+            throw new RuntimeException("get_driveservice_v1_activities =", x);
+        }
+    }
     public static Appsactivity getAppsactivityService() throws IOException {
         Credential active_credential = getCredential();
         return new Appsactivity.Builder(

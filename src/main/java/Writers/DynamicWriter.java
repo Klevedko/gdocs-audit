@@ -1,4 +1,4 @@
-package api.Writers;
+package Writers;
 
 import Reports.DynamicReport;
 import maps.DynamicReportMap;
@@ -9,9 +9,48 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.stream.IntStream;
 
 public class DynamicWriter extends DynamicReport {
+
+    final static void create_columns(Sheet x) {
+        try {
+            int row = 0;
+            Cell cell;
+            Row dataRow = x.createRow(row);
+            cell = dataRow.createCell(0);
+            cell.setCellValue("Дата");
+            cell = dataRow.createCell(1);
+            cell.setCellValue("Путь");
+            cell = dataRow.createCell(2);
+            cell.setCellValue("Файл");
+            cell = dataRow.createCell(3);
+            cell.setCellValue("Кто");
+            cell = dataRow.createCell(4);
+            cell.setCellValue("Действие");
+            cell = dataRow.createCell(5);
+            cell.setCellValue("Изменения");
+            cell = dataRow.createCell(6);
+            cell.setCellValue("Доступ сторонних сотрудников");
+            cell = dataRow.createCell(7);
+            cell.setCellValue("Доступ сотрудников АН");
+            cell = dataRow.createCell(8);
+            cell.setCellValue("Общий список прав");
+            //IntStream.range(4, 9).forEach((columnIndex) -> x.setColumnWidth(columnIndex, 6400));
+            x.setColumnWidth(0, 2700);
+            x.setColumnWidth(1, 10000);
+            x.setColumnWidth(2, 10000);
+            x.setColumnWidth(3, 3800);
+            x.setColumnWidth(4, 4300);
+            x.setColumnWidth(5, 10400);
+            x.setColumnWidth(6, 7000);
+            x.setColumnWidth(7, 10000);
+            x.setColumnWidth(8, 14000);
+            row++;
+        } catch (Exception create_columns) {
+            System.out.println("create_columns" + create_columns);
+        }
+    }
+
     public static void prepare_to_write(ArrayList<DynamicReportMap> resultMap) {
         try {
             System.out.println("writing to the dynamic file .......");
@@ -90,53 +129,14 @@ public class DynamicWriter extends DynamicReport {
         cell.setCellValue(product.getHistory());
 
         cell = dataRow.createCell(6);
-        cell.setCellStyle(cs);
-        cell.setCellValue(product.getIdowners());
+        cell.setCellValue(product.getBadOwnersList());
 
         cell = dataRow.createCell(7);
         cell.setCellStyle(cs);
-
         cell.setCellValue(product.getGoodOwnersList());
 
         cell = dataRow.createCell(8);
-        cell.setCellValue(product.getBadOwnersList());
-    }
-
-    final static void create_columns(Sheet x) {
-        try {
-            int row = 0;
-            Cell cell;
-            Row dataRow = x.createRow(row);
-            cell = dataRow.createCell(0);
-            cell.setCellValue("Дата");
-            cell = dataRow.createCell(1);
-            cell.setCellValue("Путь");
-            cell = dataRow.createCell(2);
-            cell.setCellValue("Файл");
-            cell = dataRow.createCell(3);
-            cell.setCellValue("Кто");
-            cell = dataRow.createCell(4);
-            cell.setCellValue("Действие");
-            cell = dataRow.createCell(5);
-            cell.setCellValue("Изменения");
-            cell = dataRow.createCell(6);
-            cell.setCellValue("Общий список прав");
-            cell = dataRow.createCell(7);
-            cell.setCellValue("Доступ сотрудников АН");
-            cell = dataRow.createCell(8);
-            cell.setCellValue("Доступ сторонних сотрудников");
-            IntStream.range(4, 9).forEach((columnIndex) -> x.setColumnWidth(columnIndex, 6400));
-            x.setColumnWidth(0, 2700);
-            x.setColumnWidth(1, 10000);
-            x.setColumnWidth(2, 10000);
-            x.setColumnWidth(3, 3800);
-            x.setColumnWidth(4, 4300);
-            x.setColumnWidth(5, 10000);
-            x.setColumnWidth(6, 14400);
-            x.setColumnWidth(7, 14400);
-            row++;
-        } catch (Exception create_columns) {
-            System.out.println("create_columns" + create_columns);
-        }
+        cell.setCellStyle(cs);
+        cell.setCellValue(product.getIdowners());
     }
 }

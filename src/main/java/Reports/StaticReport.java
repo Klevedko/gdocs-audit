@@ -15,7 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static api.Writers.StaticWriter.*;
+import static Writers.StaticWriter.write_errors_to_file;
+import static Writers.StaticWriter.write_to_file;
 import static api.authorize.Apiv3.get_driveservice_v3_files;
 
 import static Reports.App.folder_exceptions;

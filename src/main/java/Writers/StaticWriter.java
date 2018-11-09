@@ -1,4 +1,4 @@
-package api.Writers;
+package Writers;
 
 import Reports.StaticReport;
 import maps.StaticReportErrorMap;
@@ -12,10 +12,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.stream.IntStream;
 
-public class StaticWriter extends StaticReport{
+public class StaticWriter extends StaticReport {
+    public static String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+
     public static void write_to_file(ArrayList<StaticReportMap> staticReportMap) {
         try {
-            String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
             result_file = result_file_template.concat(audit_date.concat(".xlsx"));
             System.out.println("writing to the file....");
             XSSFWorkbook wb = new XSSFWorkbook();
@@ -62,7 +63,7 @@ public class StaticWriter extends StaticReport{
                 cell.setCellStyle(cs);
 
                 cell = dataRow.createCell(3);
-                cell.setCellValue(product.getIdowners());
+                cell.setCellValue(product.getBadOwnersList());
                 cell.setCellStyle(cs);
 
                 cell = dataRow.createCell(4);
@@ -70,7 +71,7 @@ public class StaticWriter extends StaticReport{
                 cell.setCellStyle(cs);
 
                 cell = dataRow.createCell(5);
-                cell.setCellValue(product.getBadOwnersList());
+                cell.setCellValue(product.getIdowners());
                 cell.setCellStyle(cs);
 
                 if (isbad) badRow++;
@@ -88,6 +89,7 @@ public class StaticWriter extends StaticReport{
 
     public static void write_errors_to_file(ArrayList<StaticReportErrorMap> staticReportErrorMap) {
         try {
+            result_file = error_result_file_template.concat(audit_date.concat(".xlsx"));
             String audit_date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
             System.out.println("writing errors to the file....");
             XSSFWorkbook wb = new XSSFWorkbook();
@@ -134,7 +136,7 @@ public class StaticWriter extends StaticReport{
         }
     }
 
-    public static void create_columns(Sheet x) {
+    private static void create_columns(Sheet x) {
         try {
             int row = 0;
             Cell cell;
@@ -146,11 +148,11 @@ public class StaticWriter extends StaticReport{
             cell = dataRow.createCell(2);
             cell.setCellValue("Владелец");
             cell = dataRow.createCell(3);
-            cell.setCellValue("Общий список прав");
+            cell.setCellValue("Доступ сторонних сотрудников");
             cell = dataRow.createCell(4);
             cell.setCellValue("Доступ сотрудников АН");
             cell = dataRow.createCell(5);
-            cell.setCellValue("Доступ сторонних сотрудников");
+            cell.setCellValue("Общий список прав");
             IntStream.range(0, 6).forEach((columnIndex) -> x.setColumnWidth(columnIndex, 9500));
             x.setColumnWidth(3, 12500);
         } catch (Exception create_columns) {

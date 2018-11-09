@@ -21,27 +21,17 @@ public class DynamicReportMap implements Serializable, Comparable<DynamicReportM
     private boolean itPermissionChange;
     private String parentFolderLink;
 
-    public DynamicReportMap(String date, String foldername, String parentFolderId, String target_name, String name, String webViewLink, String eventAction, String history, String fileid, String parentFolderLink) {
+    public DynamicReportMap(String date, String foldername, String parentFolderId, String target_name, String name, String webViewLink, String eventAction, String history, String fileid,String parentFolderLink) {
         this.date = date;
         this.foldername = foldername;
-        this.parentFolderId = parentFolderId;
+        this.parentFolderId=parentFolderId;
         this.name = name;
         this.webViewLink = webViewLink;
         this.target_name = target_name;
         this.eventAction = eventAction;
         this.history = history;
         this.fileid = fileid;
-        this.parentFolderLink = parentFolderLink;
-    }
-
-    @Override
-    public int compareTo(DynamicReportMap o) {
-        int result = this.target_name.compareToIgnoreCase(o.target_name);
-        if (result != 0) {
-            return result;
-        } else {
-            return new String(this.target_name).compareTo(new String(o.target_name));
-        }
+        this.parentFolderLink=parentFolderLink;
     }
 
     public String getParentFolderLink() {
@@ -99,7 +89,6 @@ public class DynamicReportMap implements Serializable, Comparable<DynamicReportM
     public void setHistory(String history) {
         this.history = history;
     }
-
 
     public String getIdowners() {
         return idowners;
@@ -171,6 +160,16 @@ public class DynamicReportMap implements Serializable, Comparable<DynamicReportM
 
     public void setFoldername(String foldername) {
         this.foldername = foldername;
+    }
+
+    @Override
+    public int compareTo(DynamicReportMap o) {
+        int result = this.badOwnersList.compareToIgnoreCase(o.badOwnersList);
+        if (result == 0) {
+            return result;
+        } else {
+            return new String(o.badOwnersList).compareTo(new String(this.badOwnersList));
+        }
     }
 
     @Override

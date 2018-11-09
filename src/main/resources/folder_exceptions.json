@@ -1,0 +1,34 @@
+{
+  "folder_exceptions": {
+    "exceptions": {
+      "exception1": {
+        "folder": "folder1",
+        "folderId": "0B3jemUSF0v3dMnJKUUx1c2NlcTQ"
+      },
+      "exception2": {
+        "folder": "folder2",
+        "folderId": "0B3jemUSF0v3dRTlZdGlUVE1KQUk"
+      },
+      "exception3": {
+        "folder": "folder3",
+        "folderId": "0B3jemUSF0v3dYTZEdkNKSmkzXzg"
+      },
+      "exception4": {
+        "folder": "folder4",
+        "folderId": "0B3jemUSF0v3dSGNsNjJwc0JwMUU"
+      },
+      "exception5": {
+        "folder": "folder5",
+        "folderId": "0B3jemUSF0v3dU1FTdVRpdWNId00"
+      },
+      "exception6": {
+        "folder": "folder6",
+        "folderId": "0B3jemUSF0v3dR3VjOWU2SzFUWE0"
+      },
+      "exception7": {
+        "folder": "folder7",
+        "folderId": "0B3jemUSF0v3dUDdJaU1YN2RBdmc"
+      }
+    }
+  }
+}

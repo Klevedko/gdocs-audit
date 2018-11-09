@@ -22,7 +22,7 @@ import java.util.Calendar;
 import static Reports.App.email_exceptions;
 import static Reports.App.folder_exceptions;
 import static Reports.App.startFolderId;
-import static api.Writers.DynamicWriter.prepare_to_write;
+import static Writers.DynamicWriter.prepare_to_write;
 import static api.authorize.Apiv1.get_driveservice_v1_activities;
 import static api.authorize.Apiv3.get_driveservice_v3_files;
 

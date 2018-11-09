@@ -1,0 +1,18 @@
+{
+  "email_exceptions": {
+    "exceptions": {
+      "exception1": {
+        "user": "user1",
+        "email": "service@causal-setting-216709.iam.gserviceaccount.com"
+      },
+      "exception2": {
+        "user": "user2",
+        "email": "mvalov78@gmail.com"
+      },
+      "exception3": {
+        "user": "user3",
+        "email": "worklogs-updater@dev-sphere-137012.iam.gserviceaccount.com"
+      }
+    }
+  }
+}

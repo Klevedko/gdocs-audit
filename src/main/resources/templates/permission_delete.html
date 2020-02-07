@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="jumbotron">
+    <h1 class="display-4">GD-audit application</h1>
+    <p class="lead">This application works with Google Drive objects.</p>
+    <p class="lead">You may generate 2 types of reports and update \ delete some user's permissions from folder</p>
+
+    <hr class="my-4"/>
+    <p class="lead">
+
+        <div class="accordion" id="accordionExample">
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne"
+                                aria-expanded="false" aria-controls="collapseOne">
+                            Static report
+                        </button>
+                    </h5>
+                </div>
+
+                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+                    <div class="card-body">
+                        Static report gets an information about files ( owners, permissions ) in 2 lists
+                        <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                                data-target="#staticModal">
+                            Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                                data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Dynamic report
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                    <div class="card-body">
+                        File's history ( changing permissions, renaming, editing, etc )
+                        <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                                data-target="#dynamicModal">
+                            Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingThree">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                                data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Update report
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                    <div class="card-body">
+                        Change user's permissions in folder's files
+    <p>Current permissions will be removed</p>
+    <p>New permissions will be granted
+    <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+            data-target="#updateModal">
+        Start
+    </button></p>
+</div>
+</div>
+</div>
+<div class="card">
+    <div class="card-header" id="headingFour">
+        <h5 class="mb-0">
+            <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                    data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                Delete permissions
+            </button>
+        </h5>
+    </div>
+
+    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+        <div class="card-body">
+            This option is for permission delete.
+            <p>Choose an Folder ID and user's list - they will never take a look to files.
+            <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                    data-target="#deleteModal">
+                Start
+            </button></p>
+        </div>
+    </div>
+</div>
+</div>
+
+<p>
+    <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false"
+       aria-controls="collapseExample">
+        Help
+    </a>
+</p>
+<div class="collapse" id="collapseExample">
+    <div class="card card-body">
+        <p>You need to select json file. (Just visit <a href="http://console.developers.google.com" target="_blank">this
+            site</a> and generate service-account
+            key).</p>
+        <p>Also, open your Google Disk and add "edit" permissions to service-account to folder that you want to
+            scan.</p>
+        <p>Then open folder and copy Folder ID from Address bar</p>
+    </div>
+</div>
+
+
+<div class="modal fade" id="staticModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="StaticModalLabel">Static report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="/permission_static" enctype="multipart/form-data">
+                    <div class="input-group mb-3">
+                        <div class="custom-file">
+                            <input required="required" type="file" class="custom-file-input" id="staticInputFile"
+                                   name="file"/>
+                            <label class="custom-file-label" for="staticInputFile"
+                                   aria-describedby="inputGroupFileAddon02">Service account json file</label>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="scan folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="scan folder id2"
+                               name="F_scanFolderId"
+                               aria-describedby="static-addon1"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="static-addon1"></span>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="output folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="output folder id1"
+                               name="F_outputFolderId"
+                               aria-describedby="static-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="static-addon2"></span>
+                        </div>
+                    </div>
+                    <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModal">
+                        Start
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="dynamicModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="DynamicModalLabel">Dynamic report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form method="POST" action="/permission_dynamic" enctype="multipart/form-data">
+                    <div class="input-group mb-3">
+                        <div class="custom-file">
+                            <input required="required" type="file" class="custom-file-input" id="dynamicInputFile"
+                                   name="file"/>
+                            <label class="custom-file-label" for="dynamicInputFile"
+                                   aria-describedby="inputGroupFileAddon02">Service account json file</label>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="scan folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="scan folder id2"
+                               name="F_scanFolderId"
+                               aria-describedby="dynamic-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="dynamic-addon1"></span>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="output folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="output folder id2"
+                               name="F_outputFolderId"
+                               aria-describedby="dynamic-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="dynamic-addon2"></span>
+                        </div>
+                    </div>
+                    <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModal">
+                        Start
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Update report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form method="POST" action="/permission_update" enctype="multipart/form-data">
+                    <div class="input-group mb-3">
+                        <div class="custom-file">
+                            <input required="required" type="file" class="custom-file-input" id="updateInputFile"
+                                   name="file"/>
+                            <label class="custom-file-label" for="updateInputFile"
+                                   aria-describedby="inputGroupFileAddon02">Service account json file</label>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="scan folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="scan folder id3"
+                               name="F_scanFolderId"
+                               aria-describedby="update-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="update-addon1"></span>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="output folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="output folder id3"
+                               name="F_outputFolderId"
+                               aria-describedby="update-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="update-addon2"></span>
+                        </div>
+                    </div>
+                    <div class="input-group" aria-required="true">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Users:</span>
+                        </div>
+                        <textarea class="form-control" aria-label="With textarea"
+                                  placeholder="list of users" required="required"
+                                  name="F_userArray"></textarea>
+                    </div>
+                    <div class="input-group" aria-required="true">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Users new permission:</span>
+                        </div>
+                        <textarea class="form-control" aria-label="With textarea"
+                                  placeholder="owner, writer, commenter or reader" required="required"
+                                  name="F_userNewPermission"></textarea>
+                    </div>
+                    <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModal">
+                        Start
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="DeleteModalLabel">Delete permission</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form method="POST" action="/permission_delete" enctype="multipart/form-data">
+                    <div class="input-group mb-3">
+                        <div class="custom-file">
+                            <input required="required" type="file" class="custom-file-input" id="deleteInputFile"
+                                   name="file"/>
+                            <label class="custom-file-label" for="deleteInputFile"
+                                   aria-describedby="inputGroupFileAddon02">Service account json file</label>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="scan folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="scan folder id4"
+                               name="F_scanFolderId"
+                               aria-describedby="delete-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="delete-addon1"></span>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="output folder id"
+                               value="1GXJg0BDmaUrT0fzRO6gDy0foB4BcvMAH"
+                               aria-label="output folder id4"
+                               name="F_outputFolderId"
+                               aria-describedby="delete-addon2"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="delete-addon2"></span>
+                        </div>
+                    </div>
+                    <div class="input-group" aria-required="true">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Users</span>
+                        </div>
+                        <textarea class="form-control" aria-label="With textarea"
+                                  placeholder="scan for users" required="required"
+                                  value="MeinGipfel@mail.ru"
+                                  name="F_userArray"></textarea>
+                    </div>
+                    <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModal">
+                        Start
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+</p>
+</div>
+</body>
+</html>

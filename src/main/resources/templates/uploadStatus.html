@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<h1>Status</h1>
+
+<!--<div th:if="${message}">
+    <h2 th:text="${message}"/>
+</div>-->
+
+<div th:if="${F_scanFolderId}">
+    <h2 th:text="${F_scanFolderId}"/>
+</div>
+
+<div th:if="${F_outputFolderId}">
+    <h2 th:text="${F_outputFolderId}"/>
+</div>
+
+<div th:if="${F_userArray}">
+    <h2 th:text="${F_userArray}"/>
+</div>
+
+</body>
+</html>

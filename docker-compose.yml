@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  app:
+    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/google_drive_permission_deleter:latest
+    ports:
+      - "8111:8080"
+    deploy:
+      placement:
+        constraints:
+          [node.role == manager]
+      resources:
+        limits:
+          cpus: '0.55'
+          memory: 2048M
